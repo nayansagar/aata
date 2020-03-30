@@ -1,0 +1,332 @@
+<html>
+<head>  
+<script src="https://unpkg.com/react@16/umd/react.development.js"></script>  
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>  
+<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+<style>
+			table, th, td {
+				padding: 10px;
+				border: 1px solid black; 
+				border-collapse: collapse;
+			}
+			table {
+				width: 100%;
+				height: 60%;
+			}
+			td {
+				width: 20%;
+				height: 80%;
+			}
+			td div img {
+				width: 100%;
+			}
+			.circle_green {      
+				padding: 14px 14px;
+				background: green;
+				height: 3px;
+				border-radius: 80%;
+				margin-left: auto;
+				margin-right: auto;
+				width: 3px;
+			}
+			.circle_red {      
+				padding: 14px 14px;
+				background: red;
+				height: 3px;
+				border-radius: 80%;
+				margin-left: auto;
+				margin-right: auto;
+				width: 3px;
+			}
+			.circle_blue {      
+				padding: 14px 14px;
+				background: blue;
+				height: 3px;
+				border-radius: 80%;
+				margin-left: auto;
+				margin-right: auto;
+				width: 3px;
+			}
+			.circle_yellow {      
+				padding: 14px 14px;
+				background: yellow;
+				height: 3px;
+				border-radius: 80%;
+				margin-left: auto;
+				margin-right: auto;
+				width: 3px;
+			}
+		</style>
+</head>  
+<body>  
+    <div id="root"></div>  
+    <script type="text/babel">  
+		
+    function Square(props) {
+		let img;
+		if ( (props.x==0 && props.y==2) || (props.x==2 && props.y==0) || (props.x==2 && props.y==2) || (props.x==2 && props.y==4) || (props.x==4 && props.y==2) ){
+			img = <img src="https://img.pngio.com/index-of-v2-imgs-x-png-black-and-white-256_256.png"/>
+		}else{
+			img = <img src="https://www.publicdomainpictures.net/pictures/30000/velka/plain-white-background.jpg"/>
+		}
+	  return (
+		<td>
+			<div>
+				{img}
+				<table>
+					<tbody>
+						<tr>
+							{ (props.data && props.data.green > 0) ? <td><div class="circle_green"><b>{props.data.green}</b></div></td> : null }
+							{ (props.data && props.data.red > 0) ? <td><div class="circle_red"><b>{props.data.red}</b></div></td> : null }
+							{ (props.data && props.data.blue > 0) ? <td><div class="circle_blue"><b>{props.data.blue}</b></div></td> : null }
+							{ (props.data && props.data.yellow > 0) ? <td><div class="circle_yellow"><b>{props.data.yellow}</b></div></td> : null }
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</td>
+	  );
+	}
+
+	class Board extends React.Component {
+	
+	constructor(props) {
+		super(props);
+		this.state = {
+			squares: props.squares
+		};
+	  }
+	  
+	  renderSquare(xIndex, yIndex) {
+			console.log("Board.rendersquare : this.props.squares : "+JSON.stringify(this.state.squares));
+			console.log("Board.rendersquare : this.props.ws : "+JSON.stringify(this.props.ws));
+		  if( this.props.squares && this.props.squares.length > 0 ){
+			return (<Square x={xIndex} y={yIndex} data={this.props.squares[xIndex][yIndex]}/>);
+		  }else{
+			return (<Square x={xIndex} y={yIndex} data=''/>);
+		  }		
+	  }
+
+	  render() {
+		return (
+		  <table>
+			  <tbody>
+				<tr>
+				  {this.renderSquare(0, 0)}
+				  {this.renderSquare(0, 1)}
+				  {this.renderSquare(0, 2)}
+				  {this.renderSquare(0, 3)}
+				  {this.renderSquare(0, 4)}
+				</tr>
+				<tr>
+				  {this.renderSquare(1, 0)}
+				  {this.renderSquare(1, 1)}
+				  {this.renderSquare(1, 2)}
+				  {this.renderSquare(1, 3)}
+				  {this.renderSquare(1, 4)}
+				</tr>
+				<tr>
+				  {this.renderSquare(2, 0)}
+				  {this.renderSquare(2, 1)}
+				  {this.renderSquare(2, 2)}
+				  {this.renderSquare(2, 3)}
+				  {this.renderSquare(2, 4)}
+				</tr>
+				<tr>
+				  {this.renderSquare(3, 0)}
+				  {this.renderSquare(3, 1)}
+				  {this.renderSquare(3, 2)}
+				  {this.renderSquare(3, 3)}
+				  {this.renderSquare(3, 4)}
+				</tr>
+				<tr>
+				  {this.renderSquare(4, 0)}
+				  {this.renderSquare(4, 1)}
+				  {this.renderSquare(4, 2)}
+				  {this.renderSquare(4, 3)}
+				  {this.renderSquare(4, 4)}
+				</tr>
+			  </tbody>
+		  </table>
+		);
+	  }
+	}
+	
+	class ScoreBoard extends React.Component {
+	
+		constructor(props) {
+			super(props);
+			this.state = {
+				play: true,
+				current: props.current ? props.current : {}
+			};
+			this.rollDice = this.rollDice.bind(this);
+		  }
+		  
+		rollDice(){
+			const dice = ['one','two','three','four','eight'];
+			var roll = dice[Math.floor(Math.random() * dice.length)];
+			this.state.current['latestScore'] = roll;
+			this.state.current[roll] = this.state.current[roll] ? this.state.current[roll]+1 : 1;
+			if(roll == 'four' || roll == 'eight'){
+				this.state.play = true;
+			}else{
+				this.state.play = false;
+			}
+			this.setState(this.state);
+		}
+		  
+		render(){
+			return(
+				<table>
+					<tbody>
+						<tr>
+							<td>
+								<table>
+									<tbody>
+										{this.state.current ? <tr><td>8</td><td>{this.state.current.eight}</td></tr> : null}
+										{this.state.current ? <tr><td>4</td><td>{this.state.current.four}</td></tr> : null}
+										{this.state.current ? <tr><td>3</td><td>{this.state.current.three}</td></tr> : null}
+										{this.state.current ? <tr><td>2</td><td>{this.state.current.two}</td></tr> : null}
+										{this.state.current ? <tr><td>1</td><td>{this.state.current.one}</td></tr> : null}
+									</tbody>
+								</table>
+							</td>
+							<td>
+								<table>
+									<tbody>
+										{ this.state.play ? <tr><td><button onClick={this.rollDice} title="play">PLAY</button></td></tr> : null}
+										{ this.state.current.latestScore ? <tr><td><h2>{this.state.current.latestScore}!</h2></td></tr> : null}
+									</tbody>
+								</table>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			);
+		}
+	}
+	
+	class Game extends React.Component {
+	  constructor(props) {
+		super(props);
+		let search = window.location.search;
+		let params = new URLSearchParams(search);
+		let gid = params.get('gid');
+		console.log("PARAMS #### "+params) 
+		console.log("GID #### "+gid) 
+		
+		this.componentDidMount = this.componentDidMount.bind(this);
+		
+		this.state = {
+			'gameId': gid,
+			'squares': []
+		}
+		
+		this.onShare = this.onShare.bind(this);
+	  }
+
+		componentDidMount() {
+			var gid2;
+			const that = this;
+			if(!this.state.gameId){
+				fetch('https://ljtgvhy8y4.execute-api.us-east-1.amazonaws.com/prod/games/cb5', {
+				  method: 'POST',
+				  headers: {
+					'Content-Type': 'application/json',
+				  }
+				})
+				.then(function(response){return response.json()})
+				.then(function(json){
+					console.log("Created game with ID : "+json.gameId+", initial state : "+JSON.stringify(json.state));
+					gid2 = json.gameId;
+					var ws = new WebSocket('wss://bhtj205hmh.execute-api.us-east-1.amazonaws.com/prod?gameId='+gid2)
+					ws.onopen = function(){
+						// on connecting, do nothing but log it to the console
+						console.log('connected, ws : '+ws, JSON.stringify(ws))
+						that.state['ws'] = ws;
+						that.setState(that.state);
+						ws.send(JSON.stringify({'gameId':gid2, 'state':'ping'}));
+					}
+
+					ws.onmessage = function(evt){
+						// listen to data sent from the websocket server
+						console.log('onmessage: '+evt, JSON.stringify(evt))
+						const message = evt.data
+						console.log("Message: "+JSON.stringify(JSON.parse(message).state))
+						that.setState({'squares': JSON.parse(message).state, 'gameId': gid2})
+						console.log("that.state : "+JSON.stringify(that.state));
+					}
+
+					ws.onclose = function(){
+						console.log('disconnected')
+						// automatically try to reconnect on connection loss
+					}
+				})
+				.catch(function(error){
+				  console.error("Error while creating game", error);
+				})
+			}else{
+				gid2 = this.state.gameId;
+				var ws = new WebSocket('wss://bhtj205hmh.execute-api.us-east-1.amazonaws.com/prod?gameId='+gid2)
+				that.setState(this.state + {'ws': ws});
+				ws.onopen = function(){
+				// on connecting, do nothing but log it to the console
+				console.log('connected')
+				ws.send(JSON.stringify({'gameId':gid2, 'state':'ping'}));
+				}
+
+				ws.onmessage = function(evt){
+					// listen to data sent from the websocket server
+					console.log('onmessage: '+evt, JSON.stringify(evt))
+					const message = evt.data
+					console.log("Message: "+message)
+					that.setState({squares: JSON.parse(message).state, gameId: gid2})
+				}
+
+				ws.onclose = function(){
+				console.log('disconnected')
+					// automatically try to reconnect on connection loss
+				}
+			}
+		}
+		
+		onShare() {
+			var gameUrl = (window.location.href && window.location.href.indexOf('gid=') > -1) ? window.location.href : window.location.href+'?gid='+this.state.gameId
+			console.log("sharing URL : "+gameUrl)
+			try {
+			  const result = Share.share({
+				message:
+				  'React Native | A framework for building native apps using React',
+			  });
+			  if (result.action === Share.sharedAction) {
+				if (result.activityType) {
+				  // shared with activity type of result.activityType
+				} else {
+				  // shared
+				}
+			  } else if (result.action === Share.dismissedAction) {
+				// dismissed
+			  }
+			} catch (error) {
+			  alert(error.message);
+			}
+		  };
+
+	  render() {
+		console.log("RENDER STATE : "+JSON.stringify(this.state));
+		return (
+			<div>
+				<button onClick={this.onShare} title="Share">Invite Friends</button>
+				<Board squares={this.state.squares} ws={this.state.ws}/>
+				<ScoreBoard current={this.state.current} ws={this.state.ws}/>
+			</div>
+		);
+	  }
+	}
+	
+	ReactDOM.render(<Game/>, document.getElementById("root"));
+      
+    </script>  
+</body>  
+</html>
