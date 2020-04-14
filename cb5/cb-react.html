@@ -60,32 +60,46 @@
 </head>  
 <body>  
     <div id="root"></div>  
-    <script type="text/babel">  
+    <script type="text/babel">
+	
+	class Square extends React.Component {
+	
+		constructor(props) {
+			super(props);
+			this.state = {};
+			this.onSourceSelected = this.onSourceSelected.bind(this);
+		  }
 		
-    function Square(props) {
-		let img;
-		if ( (props.x==0 && props.y==2) || (props.x==2 && props.y==0) || (props.x==2 && props.y==2) || (props.x==2 && props.y==4) || (props.x==4 && props.y==2) ){
-			img = <img src="https://img.pngio.com/index-of-v2-imgs-x-png-black-and-white-256_256.png"/>
-		}else{
-			img = <img src="https://www.publicdomainpictures.net/pictures/30000/velka/plain-white-background.jpg"/>
+		onSourceSelected(){
+			console.log("In onSourceSelected");
+			this.props.makeMoves(this.props.x, this.props.y, this.props.isSafe);
 		}
-	  return (
-		<td>
-			<div>
-				{img}
-				<table>
-					<tbody>
-						<tr>
-							{ (props.data && props.data.green > 0) ? <td><div class="circle_green"><b>{props.data.green}</b></div></td> : null }
-							{ (props.data && props.data.red > 0) ? <td><div class="circle_red"><b>{props.data.red}</b></div></td> : null }
-							{ (props.data && props.data.blue > 0) ? <td><div class="circle_blue"><b>{props.data.blue}</b></div></td> : null }
-							{ (props.data && props.data.yellow > 0) ? <td><div class="circle_yellow"><b>{props.data.yellow}</b></div></td> : null }
-						</tr>
-					</tbody>
-				</table>
-			</div>
-		</td>
-	  );
+		
+		render() {
+			let img;
+			if ( this.props.isSafe ){
+				img = <img src="https://img.pngio.com/index-of-v2-imgs-x-png-black-and-white-256_256.png"/>
+			}else{
+				img = <img src="https://www.publicdomainpictures.net/pictures/30000/velka/plain-white-background.jpg"/>
+			}
+		  return (
+			<td>
+				<div>
+					{img}
+					<table>
+						<tbody>
+							<tr>
+								{ (this.props.data && this.props.data.green > 0) ? <td><button onClick={this.onSourceSelected} class="circle_green"><h3>{this.props.data.green}</h3></button></td> : null }
+								{ (this.props.data && this.props.data.red > 0) ? <td><button onClick={this.onSourceSelected} class="circle_red"><h3>{this.props.data.red}</h3></button></td> : null }
+								{ (this.props.data && this.props.data.blue > 0) ? <td><button onClick={this.onSourceSelected} class="circle_blue"><h3>{this.props.data.blue}</h3></button></td> : null }
+								{ (this.props.data && this.props.data.yellow > 0) ? <td><button onClick={this.onSourceSelected} class="circle_yellow"><h3>{this.props.data.yellow}</h3></button></td> : null }
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</td>
+		  );
+		}
 	}
 
 	class Board extends React.Component {
@@ -93,17 +107,104 @@
 	constructor(props) {
 		super(props);
 		this.state = {
-			squares: props.squares
+			squares: props.squares,
+			participants_list: props.participants_list
 		};
+		
+		this.makeMoves = this.makeMoves.bind(this);
+		this.getPath = this.getPath.bind(this);
+		this.getNodeIndexFromPath = this.getNodeIndexFromPath.bind(this);
 	  }
 	  
-	  renderSquare(xIndex, yIndex) {
-			console.log("Board.rendersquare : this.props.squares : "+JSON.stringify(this.state.squares));
-			console.log("Board.rendersquare : this.props.ws : "+JSON.stringify(this.props.ws));
+	  getPath(color){
+			var colorPath = {
+			'yellow':[{'x':4, 'y':2}, {'x':4, 'y':3}, 
+			{'x':4, 'y':4}, {'x':3, 'y':4}, {'x':2, 'y':4}, {'x':1, 'y':4}, {'x':0, 'y':4},
+			{'x':0, 'y':3}, {'x':0, 'y':2}, {'x':0, 'y':1}, {'x':0, 'y':0}, {'x':1, 'y':0},
+			{'x':2, 'y':0}, {'x':3, 'y':0}, {'x':4, 'y':0}, {'x':4, 'y':1}, {'x':3, 'y':1},
+			{'x':2, 'y':1}, {'x':1, 'y':1}, {'x':1, 'y':2}, {'x':1, 'y':3}, {'x':2, 'y':3},
+			{'x':3, 'y':3}, {'x':3, 'y':2}, {'x':2, 'y':2}
+			],
+			
+			'red':[{'x':2, 'y':4}, {'x':1, 'y':4}, 
+			{'x':0, 'y':4}, {'x':0, 'y':3}, {'x':0, 'y':2}, {'x':0, 'y':1}, {'x':0, 'y':0},
+			{'x':1, 'y':0}, {'x':2, 'y':0}, {'x':3, 'y':0}, {'x':4, 'y':0}, {'x':4, 'y':1},
+			{'x':4, 'y':2}, {'x':4, 'y':3}, {'x':4, 'y':4}, {'x':3, 'y':4}, {'x':3, 'y':3},
+			{'x':3, 'y':2}, {'x':3, 'y':1}, {'x':2, 'y':1}, {'x':1, 'y':1}, {'x':1, 'y':2},
+			{'x':1, 'y':3}, {'x':2, 'y':3}, {'x':2, 'y':2}
+			],
+			
+			'blue':[{'x':0, 'y':2}, {'x':0, 'y':1}, 
+			{'x':0, 'y':0}, {'x':1, 'y':0}, {'x':2, 'y':0}, {'x':3, 'y':0}, {'x':4, 'y':0},
+			{'x':4, 'y':1}, {'x':4, 'y':2}, {'x':4, 'y':3}, {'x':4, 'y':4}, {'x':3, 'y':4},
+			{'x':2, 'y':4}, {'x':1, 'y':4}, {'x':0, 'y':4}, {'x':0, 'y':3}, {'x':1, 'y':3},
+			{'x':2, 'y':3}, {'x':3, 'y':3}, {'x':3, 'y':2}, {'x':3, 'y':1}, {'x':2, 'y':1},
+			{'x':1, 'y':1}, {'x':1, 'y':2}, {'x':2, 'y':2}
+			],
+			
+			'green':[{'x':2, 'y':0}, {'x':3, 'y':0}, 
+			{'x':4, 'y':0}, {'x':4, 'y':1}, {'x':4, 'y':2}, {'x':4, 'y':3}, {'x':4, 'y':4},
+			{'x':3, 'y':4}, {'x':2, 'y':4}, {'x':1, 'y':4}, {'x':0, 'y':4}, {'x':0, 'y':3},
+			{'x':0, 'y':2}, {'x':0, 'y':1}, {'x':0, 'y':0}, {'x':1, 'y':0}, {'x':1, 'y':1},
+			{'x':1, 'y':2}, {'x':1, 'y':3}, {'x':2, 'y':3}, {'x':3, 'y':3}, {'x':3, 'y':2},
+			{'x':3, 'y':1}, {'x':2, 'y':1}, {'x':2, 'y':2}
+			]
+			}
+			
+			return colorPath[color];
+		}
+		
+		getNodeIndexFromPath(colorPath, xIndex, yIndex){
+			for(var i=0; i<colorPath.length; i++){
+				if(colorPath[i].x == xIndex && colorPath[i].y == yIndex){
+					return i;
+				}
+			}
+			return -1;
+		}
+	  
+	  makeMoves(xIndex, yIndex, isSafe){
+			var color = this.props.color;
+			this.state.squares = JSON.parse(JSON.stringify(this.props.squares));
+			console.log("In makeMoves, xIndex : "+xIndex+", yIndex : "+yIndex+", color : "+color);
+			console.log("this.state.squares : "+JSON.stringify(this.state.squares));
+			console.log("this.state.squares[xIndex][yIndex][color] : "+this.state.squares[xIndex][yIndex][color]);
+			console.log("this.state.squares[xIndex][yIndex][color] : ", this.state.squares[xIndex][yIndex][color]);
+			if(!this.state.squares[xIndex][yIndex][color] || this.state.squares[xIndex][yIndex][color] <= 0){
+				console.log("Invalid source selected, no coins for this user in square : ["+xIndex+","+yIndex+"], color : "+color);
+				this.props.commentaryShow("You don't have a coin there!");
+				return;
+			}
+			this.state.squares[xIndex][yIndex][color] = this.state.squares[xIndex][yIndex][color] - 1;
+			
+			var colorPath = this.getPath(color);
+			console.log("colorPath : "+JSON.stringify(colorPath));
+			var startIndex = this.getNodeIndexFromPath(colorPath, xIndex, yIndex);
+			var endIndex = startIndex + this.props.current['scoreToMove'];
+			var boardX = colorPath[endIndex].x;
+			var boardY = colorPath[endIndex].y;
+			this.state.squares[boardX][boardY][color] = (this.state.squares[boardX][boardY] && this.state.squares[boardX][boardY][color]) ? this.state.squares[boardX][boardY][color] + 1 : 1;
+			['red', 'blue', 'yellow', 'green'].forEach((c) => {
+				console.log("Checking square ["+boardX+","+boardY+"] for color : "+c+"; square : "+JSON.stringify(this.state.squares[boardX][boardY]));
+				if(this.state.squares[boardX][boardY][c] > 0 && c != color && !this.state.squares[boardX][boardY]['isSafe']){
+					console.log("Should be killing a coin : "+c+" found at : ["+boardX+","+boardY+"], participants_list : "+JSON.stringify(this.props.participants_list));
+					var colorHome = this.props.participants_list.find(p => p.color == c).home;
+					this.state.squares[boardX][boardY][c] = this.state.squares[boardX][boardY][c] - 1;
+					this.state.squares[colorHome.x][colorHome.y][c] = (this.state.squares[colorHome.x][colorHome.y] && this.state.squares[colorHome.x][colorHome.y][c]) ? this.state.squares[colorHome.x][colorHome.y][c] + 1 : 1;
+					this.props.setPlayOnKill();
+				}
+			});
+			this.props.updateSquares(this.state.squares);
+			
+	  }
+	  
+	  renderSquare(xIndex, yIndex, isSafe = false) {
+			//console.log("Board.rendersquare : this.props.squares : "+JSON.stringify(this.state.squares));
+			//console.log("Board.rendersquare : this.props.ws : "+JSON.stringify(this.props.ws));
 		  if( this.props.squares && this.props.squares.length > 0 ){
-			return (<Square x={xIndex} y={yIndex} data={this.props.squares[xIndex][yIndex]}/>);
+			return (<Square x={xIndex} y={yIndex} isSafe={isSafe} data={this.props.squares[xIndex][yIndex]} makeMoves={this.makeMoves}/>);
 		  }else{
-			return (<Square x={xIndex} y={yIndex} data=''/>);
+			return (<Square x={xIndex} y={yIndex} isSafe={isSafe} data=''/>);
 		  }		
 	  }
 
@@ -114,7 +215,7 @@
 				<tr>
 				  {this.renderSquare(0, 0)}
 				  {this.renderSquare(0, 1)}
-				  {this.renderSquare(0, 2)}
+				  {this.renderSquare(0, 2, true)}
 				  {this.renderSquare(0, 3)}
 				  {this.renderSquare(0, 4)}
 				</tr>
@@ -126,11 +227,11 @@
 				  {this.renderSquare(1, 4)}
 				</tr>
 				<tr>
-				  {this.renderSquare(2, 0)}
+				  {this.renderSquare(2, 0, true)}
 				  {this.renderSquare(2, 1)}
-				  {this.renderSquare(2, 2)}
+				  {this.renderSquare(2, 2, true)}
 				  {this.renderSquare(2, 3)}
-				  {this.renderSquare(2, 4)}
+				  {this.renderSquare(2, 4, true)}
 				</tr>
 				<tr>
 				  {this.renderSquare(3, 0)}
@@ -142,7 +243,7 @@
 				<tr>
 				  {this.renderSquare(4, 0)}
 				  {this.renderSquare(4, 1)}
-				  {this.renderSquare(4, 2)}
+				  {this.renderSquare(4, 2, true)}
 				  {this.renderSquare(4, 3)}
 				  {this.renderSquare(4, 4)}
 				</tr>
@@ -157,46 +258,124 @@
 		constructor(props) {
 			super(props);
 			this.state = {
-				play: true,
-				current: props.current ? props.current : {}
+				toPlay: (this.props.current && this.props.current.toPlay == this.props.me.color) ? true : false,
+				current: this.props.current ? this.props.current : {},
+				play: true
 			};
 			this.rollDice = this.rollDice.bind(this);
+			this.selectToMove = this.selectToMove.bind(this);
+			this.chatSend = this.chatSend.bind(this);
+			this.handleChange = this.handleChange.bind(this);
 		  }
 		  
+		static getDerivedStateFromProps(nextProps, prevState){
+			console.log("nextProps : "+JSON.stringify(nextProps)+", prevState : "+JSON.stringify(prevState));
+			console.log("Object.keys(nextProps).length : "+Object.keys(nextProps).length);
+			if(!nextProps || !nextProps['me'] || !nextProps['current']){
+				return null;
+			}else{
+				return {
+					toPlay: (nextProps.current && nextProps.current.toPlay == nextProps.me.color) ? true : false,
+					current: nextProps.current ? nextProps.current : prevState.current,
+					play: ((prevState.current.toPlay != nextProps.me.color && nextProps.current.toPlay == nextProps.me.color) || nextProps.playOnKill==true) ? true : prevState.play
+				}
+			}
+		}
+		  
 		rollDice(){
-			const dice = ['one','two','three','four','eight'];
+			const dice = ['one','two','two','three','three','four','four','eight'];
 			var roll = dice[Math.floor(Math.random() * dice.length)];
 			this.state.current['latestScore'] = roll;
 			this.state.current[roll] = this.state.current[roll] ? this.state.current[roll]+1 : 1;
 			if(roll == 'four' || roll == 'eight'){
 				this.state.play = true;
+				this.props.commentaryShow("You got "+roll+", you get another chance!");
 			}else{
 				this.state.play = false;
+				this.props.unsetPlayOnKill();
+				this.props.commentaryShow("To move a score, click on the score below and select the coin to move on the board");
 			}
+			this.setState(this.state);
+			this.props.updateCurrentState(this.state.current);
+		}
+		
+		selectToMove(score){
+			this.state.current['scoreToMove'] = score;
+			this.state.current.score = this.state.current.score > 0 ? (this.state.current.score - 1) : 0;
+			this.setState(this.state);
+			this.props.updateCurrentState(this.state.current);
+		}
+		
+		handleChange(event) {
+			console.log("In handleChange : "+event);
+			//console.log("In handleChange string : "+JSON.stringify(event));
+			this.state[event.target.name] = event.target.value;
+			this.setState(this.state);
+		  }
+		
+		chatSend(event){
+			event.preventDefault();
+			console.log("In chatSend : "+this.state.chatMsg);
+			this.props.sendChatMessage(this.state.chatMsg);
+			this.state.chatMsg = "";
 			this.setState(this.state);
 		}
 		  
 		render(){
+			console.log("ScoreBoard.render :: state : "+JSON.stringify(this.state)+", props : "+JSON.stringify(this.props));
+			var pcptList;
+			var currentTemp = this.props.current;
+			if(this.props && this.props.participants_list){
+				pcptList = this.props.participants_list.map(function(participant, index){
+						var displayName = participant.name;
+						if(participant.me){
+							displayName = displayName + ' (you)';
+						}
+						if(participant.color == currentTemp.toPlay){
+							displayName = displayName + ' - CURRENT TURN';
+						}
+                        return <tr style={{height:'2%'}} key={index}><td style={{background: participant.color}}><h3>{displayName}</h3></td></tr>;
+                      })
+			}else{
+				pcptList = null;
+			}
 			return(
-				<table>
+				<table style={{width:'100%', height:'10%'}}>
 					<tbody>
 						<tr>
 							<td>
-								<table>
+								<table style={{width:'100%', height:'20%'}}>
 									<tbody>
-										{this.state.current ? <tr><td>8</td><td>{this.state.current.eight}</td></tr> : null}
-										{this.state.current ? <tr><td>4</td><td>{this.state.current.four}</td></tr> : null}
-										{this.state.current ? <tr><td>3</td><td>{this.state.current.three}</td></tr> : null}
-										{this.state.current ? <tr><td>2</td><td>{this.state.current.two}</td></tr> : null}
-										{this.state.current ? <tr><td>1</td><td>{this.state.current.one}</td></tr> : null}
+										{ this.props.chat ? <tr><td><h3><b>{this.props.chat.sender}: </b>{this.props.chat.text}</h3></td></tr> : null}
+										<tr>
+											<td>
+											<div>
+												<input type="text" name="chatMsg" onChange={this.handleChange}/>
+												<button onClick={this.chatSend}>Send</button>
+											</div>
+											</td>
+										</tr>
 									</tbody>
 								</table>
 							</td>
 							<td>
 								<table>
+									<thead><h2>Players</h2></thead>
+									<tbody>{pcptList}</tbody>
+								</table>
+							</td>
+							<td>
+								<table style={{width:'100%', height:'20%'}}>
 									<tbody>
-										{ this.state.play ? <tr><td><button onClick={this.rollDice} title="play">PLAY</button></td></tr> : null}
-										{ this.state.current.latestScore ? <tr><td><h2>{this.state.current.latestScore}!</h2></td></tr> : null}
+										<tr style={{height:'100%'}}>
+											<td style={{height:'100%'}}>{ this.state.toPlay && this.state.play ? <button onClick={this.rollDice} title="play">PLAY</button> : null }</td>
+											<td style={{height:'100%'}}>{ this.state.current.latestScore ? <h3>{this.state.current.latestScore}!</h3>  : null }</td>
+										</tr>
+										{this.state.current && this.state.current.eight > 0 ? <tr><td>8</td><td><button onClick={() => this.selectToMove(8)}>{this.state.current.eight}</button></td></tr> : null}
+										{this.state.current && this.state.current.four > 0 ? <tr><td>4</td><td><button onClick={() => this.selectToMove(4)}>{this.state.current.four}</button></td></tr> : null}
+										{this.state.current && this.state.current.three > 0 ? <tr><td>3</td><td><button onClick={() => this.selectToMove(3)}>{this.state.current.three}</button></td></tr> : null}
+										{this.state.current && this.state.current.two > 0 ? <tr><td>2</td><td><button onClick={() => this.selectToMove(2)}>{this.state.current.two}</button></td></tr> : null}
+										{this.state.current && this.state.current.one > 0 ? <tr><td>1</td><td><button onClick={() => this.selectToMove(1)}>{this.state.current.one}</button></td></tr> : null}
 									</tbody>
 								</table>
 							</td>
@@ -216,19 +395,90 @@
 		console.log("PARAMS #### "+params) 
 		console.log("GID #### "+gid) 
 		
-		this.componentDidMount = this.componentDidMount.bind(this);
-		
 		this.state = {
 			'gameId': gid,
 			'squares': []
 		}
-		
+		this.componentDidMount = this.componentDidMount.bind(this);
 		this.onShare = this.onShare.bind(this);
+		this.updateCurrentState = this.updateCurrentState.bind(this);
+		this.updateSquares = this.updateSquares.bind(this);
+		this.connect = this.connect.bind(this);
+		this.check = this.check.bind(this);
+		this.commentaryShow = this.commentaryShow.bind(this);
+		this.setPlayOnKill = this.setPlayOnKill.bind(this);
+		this.unsetPlayOnKill = this.unsetPlayOnKill.bind(this);
+		this.sendChatMessage = this.sendChatMessage.bind(this);
+	  }
+	  
+	  updateCurrentState(currentState){
+		console.log("in updateCurrentState");
+		this.state['current'] = currentState;
+		this.setState(this.state);
+		this.state.ws.send(JSON.stringify({'gameId':this.state.gameId, 'state':{'squares': this.state.squares, 'current': this.state.current}}));
+	  }
+	  
+	  getNextTurn(pList){
+		var meIndex = this.state.participants_list.findIndex(p => p.me == true)
+		var nextIndex = meIndex;
+		if(pList.length == 2){
+			nextIndex = (meIndex+1)%2;
+		}
+		if(pList.length == 4){
+			var nextIndex = (meIndex == 0 ? 2 : (meIndex == 1 ? 3 : (meIndex == 2 ? 1 : 0)));
+		}
+		
+		if(pList.length == 3){
+			var nextIndex = (meIndex == 0 ? 2 : (meIndex == 1 ? 0 : 1));
+		}
+		console.log("Next index : "+nextIndex+", nextParticipant : "+JSON.stringify(pList[nextIndex]));
+		return pList[nextIndex].color;
+	  }
+	  
+	  updateSquares(squares){
+		var scoreValName = {1: "one", 2: "two", 3:"three", 4:"four", 8:"eight"};
+		var score = this.state.current['scoreToMove'];
+		this.state.current['scoreToMove'] = 0;
+		this.state.current[scoreValName[score]] = this.state.current[scoreValName[score]] - 1;
+		if( (!this.state.current['one'] || this.state.current['one'] == 0) 
+			&& (!this.state.current['two'] || this.state.current['two'] == 0) 
+			&& (!this.state.current['three'] || this.state.current['three'] == 0)
+			&& (!this.state.current['four'] || this.state.current['four'] == 0)
+			&& (!this.state.current['eight'] || this.state.current['eight'] == 0) 
+			&& !this.state.playOnKill){
+			console.log("All scores moved!, state : "+JSON.stringify(this.state));
+			this.state.current.toPlay = this.getNextTurn(this.state.participants_list);
+			this.commentaryShow(this.state.current.toPlay + " plays next");
+		}
+		this.state['squares'] = squares;
+		this.setState(this.state);
+		this.state.ws.send(JSON.stringify({'gameId':this.state.gameId, 'state':{'squares': this.state.squares, 'current': this.state.current}}));
+	  }
+	  
+	  sendChatMessage(message){
+		console.log("In sendChatMessage : "+message);
+		this.state['chat'] = {
+			'sender': this.state.me.name,
+			'text': message
+		}
+		this.setState(this.state);
+		this.state.ws.send(JSON.stringify({
+			'gameId':this.state.gameId, 
+			'state':{
+				'squares': this.state.squares, 
+				'current': this.state.current,
+				'chat': {
+					'sender': this.state.me.name,
+					'text': message
+				}
+			}
+		}));
 	  }
 
 		componentDidMount() {
-			var gid2;
-			const that = this;
+			console.log('In componentDidMount');
+			var tempThis = this;
+			
 			if(!this.state.gameId){
 				fetch('https://ljtgvhy8y4.execute-api.us-east-1.amazonaws.com/prod/games/cb5', {
 				  method: 'POST',
@@ -239,60 +489,137 @@
 				.then(function(response){return response.json()})
 				.then(function(json){
 					console.log("Created game with ID : "+json.gameId+", initial state : "+JSON.stringify(json.state));
-					gid2 = json.gameId;
-					var ws = new WebSocket('wss://bhtj205hmh.execute-api.us-east-1.amazonaws.com/prod?gameId='+gid2)
-					ws.onopen = function(){
-						// on connecting, do nothing but log it to the console
-						console.log('connected, ws : '+ws, JSON.stringify(ws))
-						that.state['ws'] = ws;
-						that.setState(that.state);
-						ws.send(JSON.stringify({'gameId':gid2, 'state':'ping'}));
+					tempThis.state['gameId'] = json.gameId;
+					tempThis.state['squares'] = json.state;
+					if(!tempThis.state.name){
+						tempThis.state['name'] = prompt('Please enter your name');
 					}
-
-					ws.onmessage = function(evt){
-						// listen to data sent from the websocket server
-						console.log('onmessage: '+evt, JSON.stringify(evt))
-						const message = evt.data
-						console.log("Message: "+JSON.stringify(JSON.parse(message).state))
-						that.setState({'squares': JSON.parse(message).state, 'gameId': gid2})
-						console.log("that.state : "+JSON.stringify(that.state));
-					}
-
-					ws.onclose = function(){
-						console.log('disconnected')
-						// automatically try to reconnect on connection loss
-					}
+					console.log("before connect");
+					tempThis.connect();
 				})
 				.catch(function(error){
 				  console.error("Error while creating game", error);
 				})
 			}else{
-				gid2 = this.state.gameId;
-				var ws = new WebSocket('wss://bhtj205hmh.execute-api.us-east-1.amazonaws.com/prod?gameId='+gid2)
-				that.setState(this.state + {'ws': ws});
-				ws.onopen = function(){
-				// on connecting, do nothing but log it to the console
-				console.log('connected')
-				ws.send(JSON.stringify({'gameId':gid2, 'state':'ping'}));
-				}
-
-				ws.onmessage = function(evt){
-					// listen to data sent from the websocket server
-					console.log('onmessage: '+evt, JSON.stringify(evt))
-					const message = evt.data
-					console.log("Message: "+message)
-					that.setState({squares: JSON.parse(message).state, gameId: gid2})
-				}
-
-				ws.onclose = function(){
-				console.log('disconnected')
-					// automatically try to reconnect on connection loss
-				}
+				var localMe = JSON.parse(localStorage.getItem('aata.cb.me.'+this.state.gameId));
+				tempThis.state['name'] = localMe && localMe.name ? localMe.name : prompt('Please enter your name');
+				tempThis.connect();
 			}
 		}
 		
+		timeout = 50; // Initial timeout duration as a class variable
+
+		connect() {
+			console.log("In connect");
+			var gid2 = this.state['gameId'];
+			var wsUrl = 'wss://bhtj205hmh.execute-api.us-east-1.amazonaws.com/prod?gameId='+gid2;
+			var localMe = JSON.parse(localStorage.getItem('aata.cb.me.'+gid2));
+			console.log("Found localMe : "+localMe);
+			if(localMe && localMe.name){
+				console.log("LocalMe.name : "+localMe.name);
+				wsUrl = wsUrl + '&name='+localMe.name;
+			}else if(this.state.name){
+				console.log("this.state.name : "+this.state.name);
+				wsUrl = wsUrl + '&name='+this.state.name;
+			}
+			if(localMe && localMe.color){
+				console.log("LocalMe.color : "+localMe.color);
+				wsUrl = wsUrl + '&color='+localMe.color;
+			}
+			console.log("Connecting to WS at : "+wsUrl);
+			var ws = new WebSocket(wsUrl);
+			let that2 = this; // cache the this
+			var connectInterval;
+
+			// websocket onopen event listener
+			ws.onopen = () => {
+				// on connecting, do nothing but log it to the console
+				console.log('connected, ws : '+ws, JSON.stringify(ws))
+				that2.state['ws'] = ws;
+				that2.setState(that2.state);
+				
+				this.setState({ ws: ws });
+
+				that2.timeout = 50; // reset timer to 250 on open of websocket connection 
+				clearTimeout(connectInterval); // clear Interval on on open of websocket connection
+				ws.send(JSON.stringify({'gameId':gid2, 'state':'ping'}));
+			};
+			
+			ws.onmessage = function(evt){
+				// listen to data sent from the websocket server
+				console.log('onmessage without gid: '+evt, JSON.stringify(evt))
+				const message = JSON.parse(evt.data)
+				console.log("Message: "+JSON.stringify(message))
+				var me = message.participants.find(p => p['me'] == true)
+				localStorage.setItem('aata.cb.me.'+gid2, JSON.stringify(me) );
+				that2.setState({
+					'squares': message.state.squares, 
+					'gameId': gid2, 
+					'participants_list':message.participants, 
+					'current': message.state.current,
+					'chat': message.state.chat,
+					'me': me
+				})
+				
+				//that2.commentaryShow('You play '+me.color+', current turn : '+message.state.current.toPlay);
+						
+				if(window.location.href && window.location.href.indexOf('gid=') == -1){
+					//window.location.href = window.location.href + '?gid='+gid2+'&name='+me.name+'&color='+me.color;							
+					history.replaceState('Aata', 'ChowkaBara', window.location.href + '?gid='+gid2);
+				}
+				
+				//console.log("that2.state : "+JSON.stringify(that2.state));
+			}
+
+			// websocket onclose event listener
+			ws.onclose = e => {
+				console.log(
+					`Socket is closed. Reconnect will be attempted in ${Math.min(
+						10000 / 1000,
+						(that2.timeout + that2.timeout) / 1000
+					)} second.`,
+					e.reason
+				);
+
+				that2.timeout = that2.timeout + that2.timeout; //increment retry interval
+				connectInterval = setTimeout(this.check, Math.min(10000, that2.timeout)); //call check function after timeout
+			};
+
+			// websocket onerror event listener
+			ws.onerror = err => {
+				console.error(
+					"Socket encountered error: ",
+					err.message,
+					"Closing socket"
+				);
+
+				ws.close();
+			};
+		};
+		
+		check() {
+			console.log("inside check!");
+			if (!this.state.ws || this.state.ws.readyState == WebSocket.CLOSED) this.connect();
+		};
+		
+		commentaryShow(message){
+			console.log("In commentaryShow");
+			this.state.commentary = message;
+			this.setState(this.state);
+		}
+		
+		setPlayOnKill(){
+			this.state.playOnKill = true;
+			this.setState(this.state);
+		}
+		
+		unsetPlayOnKill(){
+			this.state.playOnKill = false;
+			this.setState(this.state);
+		}
+		
 		onShare() {
-			var gameUrl = (window.location.href && window.location.href.indexOf('gid=') > -1) ? window.location.href : window.location.href+'?gid='+this.state.gameId
+			var gameUrl = window.location.href.split('?')[0]+'?gid='+this.state.gameId
 			console.log("sharing URL : "+gameUrl)
 			try {
 			  const result = Share.share({
@@ -317,9 +644,9 @@
 		console.log("RENDER STATE : "+JSON.stringify(this.state));
 		return (
 			<div>
-				<button onClick={this.onShare} title="Share">Invite Friends</button>
-				<Board squares={this.state.squares} ws={this.state.ws}/>
-				<ScoreBoard current={this.state.current} ws={this.state.ws}/>
+				<Board color={this.state.me && this.state.me.color ? this.state.me.color : null} current={this.state.current} squares={this.state.squares} ws={this.state.ws} updateSquares={this.updateSquares}  commentaryShow={this.commentaryShow} participants_list={this.state.participants_list} setPlayOnKill={this.setPlayOnKill}/>
+				<table style={{width:'100%', height:'5%'}}><tbody><tr><td><button onClick={this.onShare} title="Share">Invite Playmates</button></td><td>{this.state.commentary}</td></tr></tbody></table>
+				<ScoreBoard me={this.state.me} playOnKill={this.state.playOnKill} unsetPlayOnKill={this.unsetPlayOnKill} current={this.state.current} chat={this.state.chat} ws={this.state.ws} updateCurrentState={this.updateCurrentState} commentaryShow={this.commentaryShow}  participants_list={this.state.participants_list} sendChatMessage={this.sendChatMessage}/>
 			</div>
 		);
 	  }
