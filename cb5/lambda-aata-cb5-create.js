@@ -13,13 +13,18 @@ exports.handler = function(event, context, callback) {
             Item: {
                 'game_id' : makeid(6),
                 'participant_list' : [],
-                'state':[
-                    [{},{},{'green':4},{},{}],
-                    [{},{},{},{},{}],
-                    [{'blue':4},{},{},{},{'red':4}],
-                    [{},{},{},{},{}],
-                    [{},{},{'yellow':4},{},{}]
-                ]
+                'state':{
+                    'squares':[
+                        [{},{},{'isSafe': true},{},{}],
+                        [{},{},{},{},{}],
+                        [{'isSafe': true},{},{'isSafe': true},{},{'isSafe': true}],
+                        [{},{},{},{},{}],
+                        [{},{},{'isSafe': true},{},{}]
+                    ],
+                    'current':{
+                        'toPlay':'red'
+                    }
+                }
             }
         };
         

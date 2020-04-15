@@ -22,19 +22,35 @@ exports.onConnect = function(event, context, callback) {
             console.log("Success : ", JSON.stringify(data.Item));
             if(data.Item && data.Item.participant_list){
                 var pcptFound = false;
+                var colorsTaken = [
+                    {'color':'red', 'taken':false, 'home':{'x':2, 'y':4}}, 
+                    {'color':'green', 'taken':false, 'home':{'x':2, 'y':0}},
+                    {'color':'blue', 'taken':false, 'home':{'x':0, 'y':2}}, 
+                    {'color':'yellow', 'taken':false, 'home':{'x':4, 'y':2}}
+                ]
                 for(var i in data.Item.participant_list){
-                    if(i.color == color){
+                    console.log("i :"+i, JSON.stringify(data.Item.participant_list[i]));
+                    colorsTaken.find(clr => data.Item.participant_list[i].color == clr.color)['taken']=true;
+                    if(data.Item.participant_list[i].color == color){
                         pcptFound = true
-                        i.connect_id = connectionId;
-                        i.name = name;
+                        data.Item.participant_list[i].connect_id = connectionId;
+                        data.Item.participant_list[i].name = name;
                     }
                 }
                 if(!pcptFound){
+                    var assignedColor = colorsTaken.find(c => c.taken == false);
                     data.Item.participant_list.push({
                         'connect_id':connectionId,
-                        'color':color,
-                        'name':name
-                    });    
+                        'color':assignedColor['color'],
+                        'name':name,
+                        'home': assignedColor['home']
+                    });
+                    
+                    if(data.Item.participant_list.length == 1){
+                        data.Item['state']['current']['toPlay'] = assignedColor['color'];
+                    }
+                    
+                    data.Item.state.squares[assignedColor['home']['x']][assignedColor['home']['y']][assignedColor['color']] = 4;
                 }
                 
                 docClient.put({
@@ -51,15 +67,20 @@ exports.onConnect = function(event, context, callback) {
                         console.log("Success", data);
                         var gameState = data.Item;
                         console.log("after PUT :: data.Items[0] : "+gameState, JSON.stringify(gameState));
-                        var pList = JSON.parse(JSON.stringify(gameState.participant_list))
-                        var stateToBroadcast = {
-                            'gameId':gameId, 
-                            'state':gameState['state'],
-                            'participants': pList.map(p => delete p.connect_id)
-                        };
+                        var pList = JSON.parse(JSON.stringify(gameState.participant_list));
+                        
                         gameState.participant_list.forEach(function(participant){
                             console.log("participant.connect_id : "+participant['connect_id']+", connectionId : "+connectionId);
+                            var stateToBroadcast = {
+                                'gameId':gameId, 
+                                'state':gameState['state'],
+                                'participants': pList.map(function(p){
+                                console.log("connectionId : "+connectionId+", p['connect_id'] : "+p['connect_id']+", "+(participant['connect_id'] == p['connect_id']))
+                                return {'name':p.name, 'color':p.color, 'home':p.home, 'me': participant['connect_id'] == p['connect_id']}
+                                })
+                            };
                             if(participant['connect_id'] != connectionId){
+                                console.log("sending state :: "+JSON.stringify(stateToBroadcast)+" :: to participant :: "+JSON.stringify(participant));
                                 send(event, stateToBroadcast, participant['connect_id'])
                                 .then(data =>{
                                     callback(null, {
@@ -81,12 +102,19 @@ exports.onConnect = function(event, context, callback) {
                                     });
                                 });
                             }else{
-                                callback(null, {
+                                /*callback(null, {
                                         statusCode: 200,
                                         "headers": {
                                             "gameId": gameId
                                         },
                                         body: JSON.stringify(stateToBroadcast),
+                                    });*/
+                                    callback(null, {
+                                        statusCode: 200,
+                                        "headers": {
+                                            "gameId": gameId
+                                        },
+                                        body: "TEST",
                                     });
                             }
                         });
@@ -100,6 +128,7 @@ exports.onConnect = function(event, context, callback) {
 };
 
 const send = (event, payload, connectionId) => {
+  console.log("Sending message : "+JSON.stringify(payload)+" to : "+connectionId);
   const apigwManagementApi = new AWS.ApiGatewayManagementApi({
     apiVersion: "2018-11-29",
     endpoint: event.requestContext.domainName + "/" + event.requestContext.stage

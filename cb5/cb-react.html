@@ -86,13 +86,13 @@
 			<td>
 				<div>
 					{img}
-					<table>
+					<table style={{border: 'none'}}>
 						<tbody>
-							<tr>
-								{ (this.props.data && this.props.data.green > 0) ? <td><button onClick={this.onSourceSelected} class="circle_green"><h3>{this.props.data.green}</h3></button></td> : null }
-								{ (this.props.data && this.props.data.red > 0) ? <td><button onClick={this.onSourceSelected} class="circle_red"><h3>{this.props.data.red}</h3></button></td> : null }
-								{ (this.props.data && this.props.data.blue > 0) ? <td><button onClick={this.onSourceSelected} class="circle_blue"><h3>{this.props.data.blue}</h3></button></td> : null }
-								{ (this.props.data && this.props.data.yellow > 0) ? <td><button onClick={this.onSourceSelected} class="circle_yellow"><h3>{this.props.data.yellow}</h3></button></td> : null }
+							<tr style={{border: 'none'}}>
+								{ (this.props.data && this.props.data.green > 0) ? <td style={{border: 'none'}}><button onClick={this.onSourceSelected} class="circle_green"><h3>{this.props.data.green}</h3></button></td> : null }
+								{ (this.props.data && this.props.data.red > 0) ? <td style={{border: 'none'}}><button onClick={this.onSourceSelected} class="circle_red"><h3>{this.props.data.red}</h3></button></td> : null }
+								{ (this.props.data && this.props.data.blue > 0) ? <td style={{border: 'none'}}><button onClick={this.onSourceSelected} class="circle_blue"><h3>{this.props.data.blue}</h3></button></td> : null }
+								{ (this.props.data && this.props.data.yellow > 0) ? <td style={{border: 'none'}}><button onClick={this.onSourceSelected} class="circle_yellow"><h3>{this.props.data.yellow}</h3></button></td> : null }
 							</tr>
 						</tbody>
 					</table>
@@ -194,6 +194,7 @@
 					this.props.setPlayOnKill();
 				}
 			});
+			this.props.addToHistory({'x':xIndex, 'y':yIndex}, {'x':boardX, 'y': boardY}, this.props.current['scoreToMove']);
 			this.props.updateSquares(this.state.squares);
 			
 	  }
@@ -266,6 +267,7 @@
 			this.selectToMove = this.selectToMove.bind(this);
 			this.chatSend = this.chatSend.bind(this);
 			this.handleChange = this.handleChange.bind(this);
+			this.onShare = this.onShare.bind(this);
 		  }
 		  
 		static getDerivedStateFromProps(nextProps, prevState){
@@ -320,6 +322,44 @@
 			this.state.chatMsg = "";
 			this.setState(this.state);
 		}
+		
+		onShare() {
+			var gameUrl = window.location.href.split('?')[0]+'?gid='+this.props.gameId
+			console.log("sharing URL : "+gameUrl)
+			if ( navigator.share ) {
+				navigator.share({
+					title: "",
+					text: "Hey! how about a game of ChowkaBara? :)",
+					url: gameUrl
+				})
+				.then(() => {console.log("Share successful!")})
+				.catch((error) => {console.log("Share failed!")})
+			}else{
+				console.log("Sharing not supported, URL copied to clipboard");
+				navigator.clipboard.writeText(gameUrl);
+				window.alert("Link copied - share with your playmates");
+			}
+			
+			/*
+			try {
+			  const result = Share.share({
+				message:
+				  'React Native | A framework for building native apps using React',
+			  });
+			  if (result.action === Share.sharedAction) {
+				if (result.activityType) {
+				  // shared with activity type of result.activityType
+				} else {
+				  // shared
+				}
+			  } else if (result.action === Share.dismissedAction) {
+				// dismissed
+			  }
+			} catch (error) {
+			  alert(error.message);
+			}
+			*/
+		  };
 		  
 		render(){
 			console.log("ScoreBoard.render :: state : "+JSON.stringify(this.state)+", props : "+JSON.stringify(this.props));
@@ -332,26 +372,26 @@
 							displayName = displayName + ' (you)';
 						}
 						if(participant.color == currentTemp.toPlay){
-							displayName = displayName + ' - CURRENT TURN';
+							displayName = displayName + ' \u27A4'
 						}
-                        return <tr style={{height:'2%'}} key={index}><td style={{background: participant.color}}><h3>{displayName}</h3></td></tr>;
+                        return <tr style={{height:'2%', border: 'none'}} key={index}><td style={{background: participant.color , border: 'none'}}><h3>{displayName}</h3></td></tr>;
                       })
 			}else{
 				pcptList = null;
 			}
 			return(
-				<table style={{width:'100%', height:'10%'}}>
+				<table style={{width:'100%', height:'10%', border: 'none'}}>
 					<tbody>
 						<tr>
 							<td>
-								<table style={{width:'100%', height:'20%'}}>
+								<table style={{width:'100%', height:'100%', border: 'none'}}>
 									<tbody>
-										{ this.props.chat ? <tr><td><h3><b>{this.props.chat.sender}: </b>{this.props.chat.text}</h3></td></tr> : null}
-										<tr>
-											<td>
-											<div>
-												<input type="text" name="chatMsg" onChange={this.handleChange}/>
-												<button onClick={this.chatSend}>Send</button>
+										{ this.props.chat ? <tr style={{border: 'none'}}><td style={{border: 'none'}}><h4>{this.props.chat.sender}: {this.props.chat.text}</h4></td></tr> : null}
+										<tr style={{align:'bottom', border: 'none'}}>
+											<td style={{align:'bottom', border: 'none'}}>
+											<div style={{align:'bottom', width:'100%', height:'25%'}}>
+												<input style={{align:'bottom', width:'80%'}} type="text" name="chatMsg" onChange={this.handleChange}/>
+												<button style={{align:'bottom', width:'20%'}} onClick={this.chatSend}><b>Send</b></button>
 											</div>
 											</td>
 										</tr>
@@ -359,23 +399,28 @@
 								</table>
 							</td>
 							<td>
+								<div style={{border: 'none', align: 'center'}}><button style={{width:'100%', height:'100%', align: 'center'}} onClick={this.onShare} title="Share"><h3>Invite Playmates</h3></button></div>
 								<table>
-									<thead><h2>Players</h2></thead>
 									<tbody>{pcptList}</tbody>
 								</table>
 							</td>
 							<td>
-								<table style={{width:'100%', height:'20%'}}>
+								<table style={{width:'100%', height:'20%',border: 'none'}}>
 									<tbody>
-										<tr style={{height:'100%'}}>
-											<td style={{height:'100%'}}>{ this.state.toPlay && this.state.play ? <button onClick={this.rollDice} title="play">PLAY</button> : null }</td>
-											<td style={{height:'100%'}}>{ this.state.current.latestScore ? <h3>{this.state.current.latestScore}!</h3>  : null }</td>
+										<tr style={{height:'100%', align: 'top'}}>
+											<td style={{height:'100%',border: 'none', align: 'top'}}>{ this.state.toPlay && this.state.play ? <button style={{width:'100%',height:'100%'}} onClick={this.rollDice} title="play"><h3>PLAY</h3></button> : null }</td>
+											<td style={{height:'100%',border: 'none'}}>{ this.state.current.latestScore ? <h3>{this.state.current.latestScore}!</h3>  : null }</td>
 										</tr>
-										{this.state.current && this.state.current.eight > 0 ? <tr><td>8</td><td><button onClick={() => this.selectToMove(8)}>{this.state.current.eight}</button></td></tr> : null}
-										{this.state.current && this.state.current.four > 0 ? <tr><td>4</td><td><button onClick={() => this.selectToMove(4)}>{this.state.current.four}</button></td></tr> : null}
-										{this.state.current && this.state.current.three > 0 ? <tr><td>3</td><td><button onClick={() => this.selectToMove(3)}>{this.state.current.three}</button></td></tr> : null}
-										{this.state.current && this.state.current.two > 0 ? <tr><td>2</td><td><button onClick={() => this.selectToMove(2)}>{this.state.current.two}</button></td></tr> : null}
-										{this.state.current && this.state.current.one > 0 ? <tr><td>1</td><td><button onClick={() => this.selectToMove(1)}>{this.state.current.one}</button></td></tr> : null}
+										{this.state.current && this.state.current.eight > 0 ? <tr style={{width:'100%', border:'none'}}><td  style={{width:'50%', border:'none'}}><h3>Eight</h3></td><td  style={{width:'50%', border:'none'}}><button style={{width:'100%'}} onClick={() => this.selectToMove(8)} disabled={!this.state.toPlay}><h3>{this.state.current.eight}</h3></button></td></tr> : null}
+										{this.state.current && this.state.current.four > 0 ? <tr style={{width:'100%', border:'none'}}><td  style={{width:'50%', border:'none'}}><h3>Four</h3></td><td  style={{width:'50%', border:'none'}}><button style={{width:'100%'}} onClick={() => this.selectToMove(4)} disabled={!this.state.toPlay}><h3>{this.state.current.four}</h3></button></td></tr> : null}
+										{this.state.current && this.state.current.three > 0 ? <tr style={{width:'100%', border:'none'}}><td  style={{width:'50%', border:'none'}}><h3>Three</h3></td><td  style={{width:'50%', border:'none'}}><button style={{width:'100%'}} onClick={() => this.selectToMove(3)} disabled={!this.state.toPlay}><h3>{this.state.current.three}</h3></button></td></tr> : null}
+										{this.state.current && this.state.current.two > 0 ? <tr style={{width:'100%', border:'none'}}><td  style={{width:'50%', border:'none'}}><h3>Two</h3></td><td style={{width:'50%', border:'none'}}><button style={{width:'100%'}} onClick={() => this.selectToMove(2)} disabled={!this.state.toPlay}><h3>{this.state.current.two}</h3></button></td></tr> : null}
+										{this.state.current && this.state.current.one > 0 ? <tr style={{width:'100%', border:'none'}}><td  style={{width:'50%', border:'none'}}><h3>One</h3></td><td style={{width:'50%', border:'none'}}><button style={{width:'100%'}} onClick={() => this.selectToMove(1)} disabled={!this.state.toPlay}><h3>{this.state.current.one}</h3></button></td></tr> : null}
+										<tr style={{border: 'none'}}>
+											<td style={{width:'30%',height:'100%',border: 'none'}}>{ this.state.toPlay && !this.state.play ? <button onClick={this.props.undoLastMove} title="undo">UNDO</button> : null }</td>
+											<td style={{width:'40%',height:'100%',border: 'none'}}>{ this.state.toPlay && !this.state.play ? <button onClick={this.props.undoAllMoves} title="undoAll">UNDO ALL</button> : null }</td>
+											<td style={{width:'30%',height:'100%',border: 'none'}}>{ this.state.toPlay && !this.state.play ? <button onClick={this.props.finishTurn} title="done">DONE</button> : null }</td>
+										</tr>
 									</tbody>
 								</table>
 							</td>
@@ -400,7 +445,6 @@
 			'squares': []
 		}
 		this.componentDidMount = this.componentDidMount.bind(this);
-		this.onShare = this.onShare.bind(this);
 		this.updateCurrentState = this.updateCurrentState.bind(this);
 		this.updateSquares = this.updateSquares.bind(this);
 		this.connect = this.connect.bind(this);
@@ -409,6 +453,10 @@
 		this.setPlayOnKill = this.setPlayOnKill.bind(this);
 		this.unsetPlayOnKill = this.unsetPlayOnKill.bind(this);
 		this.sendChatMessage = this.sendChatMessage.bind(this);
+		this.addToHistory = this.addToHistory.bind(this);
+		this.undoLastMove = this.undoLastMove.bind(this);
+		this.undoAllMoves = this.undoAllMoves.bind(this);
+		this.finishTurn = this.finishTurn.bind(this);
 	  }
 	  
 	  updateCurrentState(currentState){
@@ -435,11 +483,39 @@
 		return pList[nextIndex].color;
 	  }
 	  
-	  updateSquares(squares){
-		var scoreValName = {1: "one", 2: "two", 3:"three", 4:"four", 8:"eight"};
-		var score = this.state.current['scoreToMove'];
-		this.state.current['scoreToMove'] = 0;
-		this.state.current[scoreValName[score]] = this.state.current[scoreValName[score]] - 1;
+	  addToHistory(start, end, score){
+		if(!this.state.current['history']){
+			this.state.current['history'] = [];
+		}
+		this.state.current['history'].push({
+			'start': start,
+			'end': end,
+			'score': score
+		})
+	  }
+	  
+	  undoLastMove(){
+		var scoreToWord = {1:"one", 2:"two", 3:"three", 4:"four"};
+		if(this.state.current['history'].length > 0){
+			var moveToUndo = this.state.current['history'].pop();
+			console.log("Undo move : "+JSON.stringify(moveToUndo));
+			this.state.squares[moveToUndo.start['x']][moveToUndo.start['y']][this.state.me.color] = this.state.squares[moveToUndo.start['x']][moveToUndo.start['y']][this.state.me.color]+1;
+			this.state.squares[moveToUndo.end['x']][moveToUndo.end['y']][this.state.me.color] = this.state.squares[moveToUndo.end['x']][moveToUndo.end['y']][this.state.me.color]-1;
+			this.state.current[scoreToWord[moveToUndo.score]] = this.state.current[scoreToWord[moveToUndo.score]] ? this.state.current[scoreToWord[moveToUndo.score]] + 1 : 1;
+			this.setState(this.state);
+			this.state.ws.send(JSON.stringify({'gameId':this.state.gameId, 'state':{'squares': this.state.squares, 'current': this.state.current}}));
+		}
+	  }
+	  
+	  undoAllMoves(){
+		var scoreToWord = {1:"one", 2:"two", 3:"three", 4:"four"};
+		var thisTemp = this;
+		while(this.state.current['history'].length > 0){
+			this.undoLastMove();
+		}
+	  }
+	  
+	  finishTurn(){
 		if( (!this.state.current['one'] || this.state.current['one'] == 0) 
 			&& (!this.state.current['two'] || this.state.current['two'] == 0) 
 			&& (!this.state.current['three'] || this.state.current['three'] == 0)
@@ -449,7 +525,24 @@
 			console.log("All scores moved!, state : "+JSON.stringify(this.state));
 			this.state.current.toPlay = this.getNextTurn(this.state.participants_list);
 			this.commentaryShow(this.state.current.toPlay + " plays next");
+		}else {
+			const rollback = window.confirm("Do you want to rollback all moves?"); 
+			if(r == true){
+				this.undoAllMoves();
+			}else{
+				this.commentaryShow("Move or undo all scores to continue");
+			}
 		}
+		this.state.current['latestScore'] = null;
+		this.setState(this.state);
+		this.state.ws.send(JSON.stringify({'gameId':this.state.gameId, 'state':{'squares': this.state.squares, 'current': this.state.current}}));
+	  }
+	  
+	  updateSquares(squares){
+		var scoreValName = {1: "one", 2: "two", 3:"three", 4:"four", 8:"eight"};
+		var score = this.state.current['scoreToMove'];
+		this.state.current['scoreToMove'] = 0;
+		this.state.current[scoreValName[score]] = this.state.current[scoreValName[score]] - 1;
 		this.state['squares'] = squares;
 		this.setState(this.state);
 		this.state.ws.send(JSON.stringify({'gameId':this.state.gameId, 'state':{'squares': this.state.squares, 'current': this.state.current}}));
@@ -617,36 +710,14 @@
 			this.state.playOnKill = false;
 			this.setState(this.state);
 		}
-		
-		onShare() {
-			var gameUrl = window.location.href.split('?')[0]+'?gid='+this.state.gameId
-			console.log("sharing URL : "+gameUrl)
-			try {
-			  const result = Share.share({
-				message:
-				  'React Native | A framework for building native apps using React',
-			  });
-			  if (result.action === Share.sharedAction) {
-				if (result.activityType) {
-				  // shared with activity type of result.activityType
-				} else {
-				  // shared
-				}
-			  } else if (result.action === Share.dismissedAction) {
-				// dismissed
-			  }
-			} catch (error) {
-			  alert(error.message);
-			}
-		  };
 
 	  render() {
 		console.log("RENDER STATE : "+JSON.stringify(this.state));
 		return (
 			<div>
-				<Board color={this.state.me && this.state.me.color ? this.state.me.color : null} current={this.state.current} squares={this.state.squares} ws={this.state.ws} updateSquares={this.updateSquares}  commentaryShow={this.commentaryShow} participants_list={this.state.participants_list} setPlayOnKill={this.setPlayOnKill}/>
-				<table style={{width:'100%', height:'5%'}}><tbody><tr><td><button onClick={this.onShare} title="Share">Invite Playmates</button></td><td>{this.state.commentary}</td></tr></tbody></table>
-				<ScoreBoard me={this.state.me} playOnKill={this.state.playOnKill} unsetPlayOnKill={this.unsetPlayOnKill} current={this.state.current} chat={this.state.chat} ws={this.state.ws} updateCurrentState={this.updateCurrentState} commentaryShow={this.commentaryShow}  participants_list={this.state.participants_list} sendChatMessage={this.sendChatMessage}/>
+				<Board color={this.state.me && this.state.me.color ? this.state.me.color : null} current={this.state.current} squares={this.state.squares} ws={this.state.ws} updateSquares={this.updateSquares}  commentaryShow={this.commentaryShow} participants_list={this.state.participants_list} setPlayOnKill={this.setPlayOnKill} addToHistory={this.addToHistory}/>
+				<table style={{width:'100%', height:'5%'}}><tbody><tr><td><h3 align="center">{this.state.commentary}</h3></td></tr></tbody></table>
+				<ScoreBoard gameId={this.state.gameId} me={this.state.me} playOnKill={this.state.playOnKill} unsetPlayOnKill={this.unsetPlayOnKill} current={this.state.current} chat={this.state.chat} ws={this.state.ws} updateCurrentState={this.updateCurrentState} commentaryShow={this.commentaryShow}  participants_list={this.state.participants_list} sendChatMessage={this.sendChatMessage} undoLastMove={this.undoLastMove} undoAllMoves={this.undoAllMoves} finishTurn={this.finishTurn}/>
 			</div>
 		);
 	  }
