@@ -109,15 +109,15 @@
 		render() {
 			let img;
 			if ( this.props.isSafe ){
-				img = <img style={{height:'100%', width:'100%', position:'absolute', display: 'block', zIndex:2}} src="https://chowkabara.com/assets/ghatta.png"/>
+				img = <img style={{height:'100%', width:'100%', position:'absolute', display: 'block', zIndex:3}} src="https://chowkabara.com/assets/ghatta.png"/>
 			}else{
-				img = <img style={{height:'100%', width:'100%', position:'absolute', display: 'inline-block', zIndex:2}} src="https://chowkabara.com/assets/plain-white-background.jpg"/>
+				img = <img style={{height:'100%', width:'100%', position:'absolute', display: 'inline-block', zIndex:3}} src="https://chowkabara.com/assets/plain-white-background.jpg"/>
 			}
 		  return (
 			<td style={{height:'20%', width:'20%', overflow:'hidden', border:'3px solid '+this.props.color, padding: '0px'}}>
-				<div style={{height:'100%', width:'100%', position:'relative', zIndex:1}}>
+				<div style={{height:'100%', width:'100%', position:'relative', zIndex:2}}>
 					{img}
-					<table style={{tableLayout:'fixed', height:'100%', width:'100%', position:'relative', border: 'none', valign:'middle', zIndex: 3, padding: '0px'}}>
+					<table style={{tableLayout:'fixed', height:'100%', width:'100%', position:'relative', border: 'none', valign:'middle', zIndex: 4, padding: '0px'}}>
 						<tbody>
 							<tr style={{border: 'none', height: '50%'}}>
 								{ (this.props.data && this.props.data.green > 0) ? <td style={{width:'50%', height:'100%', border: 'none', overflow: 'hidden', padding: '0px'}}><button onClick={this.onSourceSelected} class="circle_green">{this.props.data.green}</button></td> : null }
@@ -214,7 +214,7 @@
 			var startIndex = this.getNodeIndexFromPath(colorPath, xIndex, yIndex);
 			var endIndex = startIndex + this.props.current['scoreToMove'];
 			if(endIndex >= colorPath.length){
-				this.props.commentaryShow("Can't move this coin by "+this.props.current['scoreToMove']+" places. If you can't move all scores, click \"done\" and agree to \"undo all\"");
+				this.props.commentaryShow("Can't move this coin by "+this.props.current['scoreToMove']+" places. If you can't move all scores, click \"PASS\" to let the next player play");
 				return;
 			}
 			var boardX = colorPath[endIndex].x;
@@ -252,7 +252,7 @@
 			}
 			
 			if(endIndex == colorPath.length - 1){
-				this.props.commentaryShow("GOOD JOB! The coin has reached it's destination!");
+				this.props.commentaryShow("GOOD JOB! The coin has reached it's destination!", true);
 			}
 			this.props.updateSquares(this.state.squares);
 	  }
@@ -364,11 +364,16 @@
 			}
 			if(roll == 'four' || roll == 'eight'){
 				this.state.play = true;
-				this.props.commentaryShow("You got "+roll+", you get another chance!");
+				this.props.commentaryShow("You got "+roll+", you get another chance!", true);
 			}else{
 				this.state.play = false;
 				this.props.unsetPlayOnKill();
-				this.props.commentaryShow("To move a score, click on the score below and select the coin to move on the board");
+				if(this.props.squares[this.props.me.home.x][this.props.me.home.y][this.props.me.color] == 4){
+					this.props.commentaryShow(roll+"!\n\n To move a score:\n 1. click on the score (Eg., \""+roll+": "+this.state.current[roll]+"\")\n 2. select the coin to move on the board\n 3. When you have moved all scores, click \"DONE\"\n", true, 5000);
+				} else {
+					this.props.commentaryShow(roll.toUpperCase()+"!", true, 1500);
+				}
+				
 			}
 			this.setState(this.state);
 			this.props.updateCurrentState(this.state.current);
@@ -419,10 +424,10 @@
 			}
 		  };
 		  
-		  quit(){
+		quit(){
 			this.props.leaveGame(this.state.toPlay && this.state.play);
-		  }
-		  
+		}
+		
 		render(){
 			console.log("ScoreBoard.render :: state : "+JSON.stringify(this.state)+", props : "+JSON.stringify(this.props));
 			var pcptList;
@@ -453,7 +458,7 @@
 						var textColor = participant.color == 'yellow' ? 'black' : 'white';
                         return <tr style={{height:'2%', border: 'none'}} key={index}>
 								<td style={{height:'2%', background: participant.color , border: 'none', color: textColor}}>
-									<div>
+									<div style={{fontSize:'20px'}}>
 										<b>{displayName}</b>
 									</div>
 								</td>
@@ -475,62 +480,80 @@
 			}else{
 				pcptList = null;
 			}
+			
+			var finalAction;
+			if( (!this.state.current['one'] || this.state.current['one'] == 0) 
+				&& (!this.state.current['two'] || this.state.current['two'] == 0) 
+				&& (!this.state.current['three'] || this.state.current['three'] == 0)
+				&& (!this.state.current['four'] || this.state.current['four'] == 0)
+				&& (!this.state.current['eight'] || this.state.current['eight'] == 0) 
+				&& !this.state.playOnKill){
+					finalAction = "DONE";
+				}else {
+					finalAction = "PASS";
+				}
+			
 			return(
-				<table style={{width:'98vmin', height:'10%', border: 'none', marginLeft:'auto',marginRight:'auto'}}>
+				<div style={{width:'98vmin', height:'30%', border: 'none', marginLeft:'auto',marginRight:'auto'}}>
+				<table style={{width:'100%', height:'20%', border: 'none', marginLeft:'auto',marginRight:'auto'}}>
 					<tbody>
 						<tr>
 							<td>
-								<table style={{width:'100%', height:'100%', border: 'none'}}>
-								<thead><td style={{border:'none'}}><h3>Chat</h3></td></thead>
-									<tbody>
-										{ this.props.chat ? <tr style={{border: 'none'}}><td style={{border: 'none'}}><h4>{this.props.chat.sender}: {this.props.chat.text}</h4></td></tr> : null}
-										<tr style={{align:'bottom', border: 'none'}}>
-											<td style={{align:'bottom', border: 'none'}}>
-												<div style={{width:'100%', height:'25%'}}>
-													<input style={{width:'70%'}} type="text" name="chatMsg" onChange={this.handleChange}/>
-													<button style={{width:'30%'}} onClick={this.chatSend}><b>Send</b></button>
-												</div>
-											</td>
-										</tr>
-									</tbody>
+								<table style={{border: 'none', padding: '0'}}>
+									<tr style={{border: 'none', padding: '0'}}>
+										<td style={{border: 'none', padding: '4px'}}>{ this.props.participants_list && this.props.participants_list.length < 4 ? <div style={{border: 'none', align: 'center'}}><button style={{width:'100%', height:'100%', align: 'center', borderRadius: '10px', fontSize: '25px'}} onClick={this.onShare} title="Share"><b>Invite</b></button></div> : null}</td>
+										<td style={{border: 'none', padding: '4px'}}><div style={{border: 'none', align: 'center'}}><button style={{width:'100%', height:'100%', align: 'center', borderRadius: '10px', fontSize: '25px'}} onClick={this.quit} title="Share"><b>Quit</b></button></div></td>
+										<td style={{border: 'none', padding: '4px'}}><button style={{width:'100%', height:'100%', align: 'center', borderRadius: '10px', fontSize: '25px'}} onClick={this.props.refresh} title="Share"><b>Refresh</b></button></td>
+										<td style={{border: 'none', padding: '4px'}}><button style={{width:'100%', height:'100%', align: 'center', borderRadius: '10px', fontSize: '25px'}} onClick={this.props.help} title="Share"><b>Help</b></button></td>
+									</tr>
 								</table>
 							</td>
-							<td>
-								<div style={{border: 'none', align: 'center'}}><button style={{width:'100%', height:'100%', align: 'center'}} onClick={this.quit} title="Share"><h3>Leave Game</h3></button></div>
-								{ this.props.participants_list && this.props.participants_list.length < 4 ? <div style={{border: 'none', align: 'center'}}><button style={{width:'100%', height:'100%', align: 'center'}} onClick={this.onShare} title="Share"><h3>Invite</h3></button></div> : null}
+						</tr>
+					</tbody>
+				</table>
+				<table style={{width:'100%', height:'80%', border: 'none', marginLeft:'auto',marginRight:'auto'}}>
+					<tbody>
+						<tr>
+							<td style={{width:'40%'}}>
 								<table style={{width:'100%', height:'10%', border: 'none'}}>
 									<tbody>{pcptList}</tbody>
 								</table>
 							</td>
-							<td>
-								<table style={{height:'15%', border: 'none'}}>
-									<tbody>
+							<td style={{padding:'0', verticalAlign: 'top', width:'20%'}}>
+								<table style={{height:'90%', border: 'none', padding: '0'}}>
+									<tbody style={{padding: '0'}}>
 										{ this.props.participants_list && this.props.participants_list.length < 2 ?
 										<tr>
 											<h3>Click "Invite" to play the game with your friends</h3>
 										</tr>
-										:
-										<tr>
-											<td style={{height:'100%',border: 'none', align: 'top'}}>{ this.state.toPlay && this.state.play ? <button style={{width:'100%',height:'100%'}} onClick={this.rollDice} title="play"><h3>PLAY</h3></button> : null }</td>
-											<td style={{height:'100%',border: 'none'}}>{ this.state.current.latestScore ? <h3>{this.state.current.latestScore}!</h3>  : null }</td>
+										: this.state.toPlay && this.state.play ? 
+										<tr style={{padding:'0', verticalAlign: 'top'}}>
+											<td style={{padding:'0', height:'100%',border: 'none', align: 'top'}}><button style={{width:'100%',height:'100%', background: this.props.me.color, color: this.props.me.color == 'yellow' ? 'black':'white', borderRadius:'12px', fontSize: '25px'}} onClick={this.rollDice} title="play"><b>PLAY</b></button></td>
 										</tr>
+										 : null
 										}
-									</tbody>
-								</table>
-								<table style={{width:'100%', height:'35%', border: 'none'}}>
-									<tbody>
-										{this.state.current && this.state.current.eight > 0 ? <tr style={{width:'100%', height:'10%', border:'none'}}><td  style={{width:'50%', border:'none'}}><button style={{width:'100%', fontSize:'20px', fontWeight: 'bold'}} onClick={() => this.selectToMove(8)} disabled={!this.state.toPlay}><b>Eight : {this.state.current.eight}</b></button></td></tr> : null}
-										{this.state.current && this.state.current.four > 0 ? <tr style={{width:'100%', height:'10%', border:'none'}}><td  style={{width:'50%', border:'none'}}><button style={{width:'100%', fontSize:'20px', fontWeight: 'bold'}} onClick={() => this.selectToMove(4)} disabled={!this.state.toPlay}><b>Four : {this.state.current.four}</b></button></td></tr> : null}
-										{this.state.current && this.state.current.three > 0 ? <tr style={{width:'100%', height:'10%', border:'none'}}><td  style={{width:'50%', border:'none'}}><button style={{width:'100%', fontSize:'20px', fontWeight: 'bold'}} onClick={() => this.selectToMove(3)} disabled={!this.state.toPlay}><b>Three : {this.state.current.three}</b></button></td></tr> : null}
-										{this.state.current && this.state.current.two > 0 ? <tr style={{width:'100%', height:'10%', border:'none'}}><td style={{width:'50%', border:'none'}}><button style={{width:'100%', fontSize:'20px', fontWeight: 'bold'}} onClick={() => this.selectToMove(2)} disabled={!this.state.toPlay}><b>Two : {this.state.current.two}</b></button></td></tr> : null}
-										{this.state.current && this.state.current.one > 0 ? <tr style={{width:'100%', height:'10%', border:'none'}}><td style={{width:'50%', border:'none'}}><button style={{width:'100%', fontSize:'20px', fontWeight: 'bold'}} onClick={() => this.selectToMove(1)} disabled={!this.state.toPlay}><b>One : {this.state.current.one}</b></button></td></tr> : null}
-									</tbody>
-								</table>
-								<table style={{height:'15%', align: 'bottom', border: 'none'}}>
-									<tbody>
+										<tr style={{padding:'0', verticalAlign: 'top'}}>
+											<td style={{width:'30%',height:'40%', border: 'none', padding:'0'}}>{ this.state.toPlay && !this.state.play ? <button style={{width:'100%', height:'100%', borderRadius:'12px', fontSize: '25px'}} onClick={() => this.props.undoLastMove(0)} title="undo"><b>UNDO</b></button> : null }</td>
+										</tr>
 										<tr>
-											<td style={{width:'30%',height:'100%',border: 'none'}}>{ this.state.toPlay && !this.state.play ? <button style={{width:'100%', height:'100%'}} onClick={() => this.props.undoLastMove(0)} title="undo"><h4>UNDO</h4></button> : null }</td>
-											<td style={{width:'40%',height:'100%',border: 'none'}}>{ this.state.toPlay && !this.state.play ? <button style={{width:'100%', height:'100%', background: this.props.me.color, color: this.props.me.color == 'yellow' ? 'black':'white'}} onClick={this.props.finishTurn} title="done"><h3>DONE</h3></button> : null }</td>
+											<td style={{width:'40%',height:'40%', border: 'none', padding:'0'}}>{ this.state.toPlay && !this.state.play ? <button style={{width:'100%', height:'100%', borderRadius:'12px', background: this.props.me.color, color: this.props.me.color == 'yellow' ? 'black':'white', fontSize: '25px'}} onClick={this.props.finishTurn} title="done"><b>{finalAction}</b></button> : null }</td>
+										</tr>
+									</tbody>
+								</table>
+							</td>
+							<td style={{width:'40%'}}>
+								<table style={{width:'100%', height:'45%', border: 'none'}}>
+									<tbody>
+										<tr style={{width:'100%', height:'12%', border:'none'}}>
+											{this.state.current && this.state.current.eight > 0 ? <td style={{width:'50%', border:'none', padding: '2px'}}><button style={{width:'100%', fontSize:'21px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(8)} disabled={!this.state.toPlay}><b>Eight: {this.state.current.eight}</b></button></td> : null}
+											{this.state.current && this.state.current.four > 0 ? <td  style={{width:'50%', border:'none', padding: '2px'}}><button style={{width:'100%', fontSize:'21px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(4)} disabled={!this.state.toPlay}><b>Four: {this.state.current.four}</b></button></td> : null}
+										</tr>
+										<tr style={{width:'100%', height:'12%', border:'none'}}>
+											{this.state.current && this.state.current.three > 0 ? <td style={{width:'50%', border:'none', padding: '2px'}}><button style={{width:'100%', fontSize:'21px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(3)} disabled={!this.state.toPlay}><b>Three: {this.state.current.three}</b></button></td> : null}
+											{this.state.current && this.state.current.two > 0 ? <td  style={{width:'50%', border:'none', padding: '2px'}}><button style={{width:'100%', fontSize:'24px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(2)} disabled={!this.state.toPlay}><b>Two: {this.state.current.two}</b></button></td> : null}
+										</tr>
+										<tr style={{width:'100%', height:'12%', border:'none'}}>
+											{this.state.current && this.state.current.one > 0 ? <td style={{width:'50%', border:'none', padding: '2px'}}><button style={{width:'100%', fontSize:'24px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(1)} disabled={!this.state.toPlay}><b>One: {this.state.current.one}</b></button></td> : null}
 										</tr>
 									</tbody>
 								</table>
@@ -538,16 +561,19 @@
 						</tr>
 					</tbody>
 				</table>
+				</div>
 			);
 		}
 	}
 	
 	class Game extends React.Component {
+		
 	  constructor(props) {
 		super(props);
 		console.log("GID #### "+this.props.gameId) 
 		
 		this.state = {
+			'showModal': false,
 			'gameId': this.props.gameId,
 			'showConnect': false,
 			'squares': []
@@ -573,6 +599,9 @@
 		this.handleChange = this.handleChange.bind(this);
 		this.leaveGame = this.leaveGame.bind(this);
 		this.updateLeaderBoard = this.updateLeaderBoard.bind(this);
+		this.closeModal = this.closeModal.bind(this);
+		this.showHelp = this.showHelp.bind(this);
+		this.refresh = this.refresh.bind(this);
 	  }
 	  
 	  updateCurrentState(currentState){
@@ -629,7 +658,7 @@
 			
 			if(moveToUndo.killed){
 				if(undoAll == 0){
-					window.alert("You cannot undo a kill. Click \"Done\" to undo all moves and pass the turn");
+					window.alert("You cannot undo a kill. Click \"PASS\" to undo all moves and pass the turn");
 					this.state.current['history'].push(moveToUndo);
 					return;
 				} else {
@@ -685,7 +714,7 @@
 			}
 			
 		}else {
-			const rollback = window.confirm("Do you want to rollback all moves?"); 
+			const rollback = window.confirm("Abort/rollback this turn and pass to next player?"); 
 			if(rollback == true){
 				this.undoAllMoves();
 				this.state.current['one'] = null;
@@ -698,7 +727,6 @@
 					this.state.current.toPlay = nextTurn;
 					this.state.current.history = null;
 					this.state.current.latestScore = null;
-					this.commentaryShow(this.state.current.toPlay + " plays next");
 				}else{
 					this.commentaryShow("GAME OVER!");
 				}
@@ -706,7 +734,6 @@
 				this.commentaryShow("Move or undo all scores to continue");
 			}
 		}
-		this.state.current['latestScore'] = null;
 		this.setState(this.state);
 		this.sendWSMessage();
 	  }
@@ -792,25 +819,27 @@
 	  }
 	  
 	  sendWSMessage(ping = false, quit = false, myTurn = false){
-		this.state.version = this.state.version+1;
 		if(ping){
 			this.state.ws.send(JSON.stringify({'gameId':this.state.gameId, 'state':'ping'}));
-		}else if(quit){
-			if(myTurn){
-				console.log("MEMEMEMEME : "+JSON.stringify(this.state.me));
-				this.state.ws.send(JSON.stringify({'gameId':this.state.gameId, 'state':'quit:'+this.getNextTurn(this.state.participants_list, this.state.me)}));
-			}else{
-				this.state.ws.send(JSON.stringify({'gameId':this.state.gameId, 'state':'quit'}));
-			}
-		}else{
-			this.state.ws.send(JSON.stringify({
-				'gameId':this.state.gameId, 
-				'state':{
-					'version': this.state.version, 
-					'squares': this.state.squares, 
-					'current': this.state.current
+		}else {
+			this.state.version = this.state.version+1;
+			if(quit){
+				if(myTurn){
+					console.log("MEMEMEMEME : "+JSON.stringify(this.state.me));
+					this.state.ws.send(JSON.stringify({'gameId':this.state.gameId, 'state':'quit:'+this.getNextTurn(this.state.participants_list, this.state.me)}));
+				}else{
+					this.state.ws.send(JSON.stringify({'gameId':this.state.gameId, 'state':'quit'}));
 				}
-			}));
+			}else{
+				this.state.ws.send(JSON.stringify({
+					'gameId':this.state.gameId, 
+					'state':{
+						'version': this.state.version, 
+						'squares': this.state.squares, 
+						'current': this.state.current
+					}
+				}));
+			}
 		}
 	  }
 	  
@@ -841,7 +870,7 @@
 					tempThis.state['squares'] = json.state;
 					if(tempThis.state.name){
 						console.log("before connect");
-						tempThis.commentaryShow("Welcome to the game of ChowkaBara 5x5! Click \"Invite Playmates\" button below to start the game with your gang...");
+						tempThis.commentaryShow("Welcome to the game of ChowkaBara 5x5! Click \"Invite\" button below to start the game with your gang...");
 						tempThis.connect();
 					}					
 				})
@@ -854,10 +883,19 @@
 			console.log('In componentDidMount');
 			if(!this.state.gameId || (this.state.gameId && this.state.gameId == 'CREATE')){
 				this.createGameAndConnect();
-				this.props.showHelp();
 			}else{
 				this.verifyAndConnect();
 			}
+			this.commentaryShow("1. If you see the \"PLAY\" button, it is your turn to play. Arrows (>>>) next to the name indicate the current turn\n\n2. If you want to quit the game mid-way, click on \"Quit\" to let others continue\n\n3. Use \"Help\" option to see the previous message\n\n4. Click \"Refresh\" if you feel the game is stuck");
+		}
+		
+		showHelp() {
+			this.state.showModal = true;
+			this.setState(this.state);
+		}
+		
+		refresh() {
+			this.sendWSMessage(true);
 		}
 		
 		verifyAndConnect(){
@@ -981,10 +1019,18 @@
 			if (!this.state.ws || this.state.ws.readyState == WebSocket.CLOSED) this.connect();
 		};
 		
-		commentaryShow(message){
+		commentaryShow(message, timed=false, duration=1500){
 			console.log("In commentaryShow");
 			this.state.commentary = message;
+			this.state.showModal = true;
 			this.setState(this.state);
+			var that = this;
+			if(timed){
+				setTimeout(function(){
+					that.state.showModal = false;
+					that.setState(that.state)
+				}, duration);
+			}
 		}
 		
 		setPlayOnKill(){
@@ -1012,12 +1058,18 @@
 				this.verifyAndConnect();
 			}
 		}
+		
+		closeModal(){
+			console.log("In close modal");
+			this.state.showModal = false;
+			this.setState(this.state);
+		}
 
 	  render() {
 		console.log("RENDER STATE : "+JSON.stringify(this.state));
 		return (
 			<div style={{marginLeft:'auto',marginRight:'auto'}}>
-				<div>
+				<div style={{zIndex: 1, position:'relative'}}>
 					{ this.state.showConnect ? 
 						<div>
 							<div style={{width: '45%', border: 'none', marginLeft:'auto', marginRight:'auto', textAlign: 'center', marginTop: '10%', color:'#AAF', fontSize: '40px', fontWeight: 'bold'}}>
@@ -1037,26 +1089,25 @@
 									</tr>
 								</tbody>
 							</table>
-							<div style={{width: '90%', border: 'none', marginLeft:'auto', marginRight:'auto', textAlign: 'center', marginTop: '5%', fontSize: '25px'}}>
-								<p><b>Before you start...</b></p>
-							</div>
-							<div style={{width: '90%', border: 'none', marginLeft:'auto', marginRight:'auto', textAlign: 'left', marginTop: '5%', fontSize: '25px'}}>
-								<p>	
-									1. If you see the "PLAY" button, it is your turn to play. Arrows (>>>) next to the name indicates the current turn<br/><br/>
-									2. To move a score, click on the score (eg., "Four : 1") and click on the coin on the board that you want to move<br/><br/>
-									3. If you want to quit the game mid-way, click on "Leave Game" to let others continue<br/><br/>
-								</p>
-							</div>
 						</div> 
 					: null}
 					{ !this.state.showConnect ? 
 					<div>
 						<Board color={this.state.me && this.state.me.color ? this.state.me.color : null} current={this.state.current} squares={this.state.squares} ws={this.state.ws} updateSquares={this.updateSquares}  commentaryShow={this.commentaryShow} participants_list={this.state.participants_list} setPlayOnKill={this.setPlayOnKill} addToHistory={this.addToHistory}/>
-						<table style={{width:'98vmin', height:'5%',marginLeft:'auto',marginRight:'auto'}}><tbody><tr><td>{ this.state.commentary ? <div style={{backgroundColor: this.state.me ? this.state.me.color : 'white' , color: this.state.me ? (this.state.me.color == 'yellow' ? 'black':'white'):'black'}}><h3 align="center">{this.state.commentary}</h3></div> : null }</td></tr></tbody></table>
-						<ScoreBoard gameId={this.state.gameId} me={this.state.me} playOnKill={this.state.playOnKill} unsetPlayOnKill={this.unsetPlayOnKill} current={this.state.current} chat={this.state.chat} ws={this.state.ws} updateCurrentState={this.updateCurrentState} commentaryShow={this.commentaryShow}  participants_list={this.state.participants_list} sendChatMessage={this.sendChatMessage} undoLastMove={this.undoLastMove} undoAllMoves={this.undoAllMoves} finishTurn={this.finishTurn} createGame={this.createGameAndConnect} sendWSMessage={this.sendWSMessage} leaveGame={this.leaveGame}/>
+						<ScoreBoard gameId={this.state.gameId} me={this.state.me} squares={this.state.squares} playOnKill={this.state.playOnKill} unsetPlayOnKill={this.unsetPlayOnKill} current={this.state.current} chat={this.state.chat} ws={this.state.ws} updateCurrentState={this.updateCurrentState} commentaryShow={this.commentaryShow}  participants_list={this.state.participants_list} sendChatMessage={this.sendChatMessage} undoLastMove={this.undoLastMove} undoAllMoves={this.undoAllMoves} finishTurn={this.finishTurn} createGame={this.createGameAndConnect} sendWSMessage={this.sendWSMessage} leaveGame={this.leaveGame} refresh={this.refresh} help={this.showHelp}/>
 					</div>
 					: null}
 				</div>
+				{ this.state.showModal ? 
+				<div style={{padding: '0', zIndex: 99, width: '100vmin', height: '100vmax', position:'fixed', top: '11vmin', marginLeft: 'auto', marginRight: 'auto', background: 'rgba(0, 0, 0, 0)'}}>
+					<div style={{padding:'2%', width: '70%', align: 'center', marginTop:'2%', marginLeft:'auto', marginRight:'auto', background: '#AAF', color: 'white', fontSize: '4vmin', whiteSpace:'pre-wrap', border: '3px solid white', borderRadius: '10px'}}>
+						<p style={{padding: '0'}}>{this.state.commentary}</p>
+						<div style={{textAlign: 'center'}}>
+							<button style={{width: '20vmin', height: '8vmin', borderRadius: '12px', marginBottom: '1px', fontSize:'4vmin', background:'white', color:'#AAF'}} onClick={this.closeModal}><b>Close</b></button>
+						</div>
+					</div>
+				</div>
+				: null }
 			</div>
 		);
 	  }
@@ -1138,7 +1189,7 @@
 		}
 		
 		showHelp() {
-			window.alert("\n1. If you see the \"PLAY\" button, it is your turn to play. Arrows (>>>) next to the name indicates the current turn\n\n2. To move a score, click on the score (eg., \"Four : 1\") and click on the coin on the board that you want to move\n\n3. If you want to quit the game mid-way, click on \"Leave Game\" to let others continue\n");
+			window.alert("\n1. If you see the \"PLAY\" button, it is your turn to play. Arrows (>>>) next to the name indicate the current turn\n\n2. If you want to quit the game mid-way, click on \"Quit\" to let others continue\n\n3. Use \"Help\" option when needed\n\n4. Click \"Refresh\" if you feel the game is stuck\n");
 		}
 		
 		goHomeNoConfirm() {
@@ -1153,7 +1204,7 @@
 				page = <Home createGame={this.createGame} showHelp={this.showHelp}/>;
 			}
 			return <div style={{marginLeft:'auto',marginRight:'auto'}}>
-					<div style={{width:'100%', height:'10vmin', background: 'white'}}>
+					<div style={{width:'100%', height:'10vmin', background: 'white', left: '0', top: '0', position: 'fixed', zIndex:98}}>
 						<table style={{height:'100%', padding: '0px', border: 'none', verticalAlign: 'top', display: 'inline-block'}}>
 							<tbody>
 								<tr style={{border: 'none', padding: '0px'}}>
@@ -1164,7 +1215,7 @@
 										<img style={{height: '90%', background: 'white', color: '#AAF', verticalAlign: 'top', border: 'none', display: 'block', margin: 'auto'}} src="https://chowkabara.com/assets/cb-full-whitebg-2.png"/>
 									</td>
 									<td style={{border: 'none', padding: '0px'}}>
-										<button style={{background: 'white', color: '#AAF', verticalAlign: 'bottom', border: 'none', float: 'left', marginLeft:'10%', fontSize:'150%', fontWeight: 'bold'}} onClick={this.showHelp}><b>Help</b></button>
+										<button style={{background: 'white', color: '#AAF', verticalAlign: 'bottom', border: 'none', float: 'left', marginLeft:'10%', fontSize:'150%', fontWeight: 'bold'}} onClick={this.showHelp}><b>Instructions</b></button>
 									</td>
 								</tr>
 							</tbody>
@@ -1173,7 +1224,7 @@
 					<div style={{marginTop: '1%'}}>
 						<hr style={{height:'2px', borderWidth:'0', color:'#AAF', backgroundColor:'#AAF'}}/>
 					</div>
-					<div style={{width:'98vmin', height: '90vmin', marginLeft:'auto', marginRight:'auto'}}>
+					<div style={{width:'98vmin', height: '90vmin', marginLeft:'auto', marginRight:'auto', marginTop: '10vmin'}}>
 						{page}
 					</div>
 				</div>
