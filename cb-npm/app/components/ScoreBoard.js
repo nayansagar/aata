@@ -232,18 +232,18 @@ export default class ScoreBoard extends React.Component {
                             </table>
                         </td>
                         <td style={{width:'40%'}}>
-                            <table style={{width:'100%', height:'45%', border: 'none'}}>
+                            <table style={{width:'100%', height:'100%', border: 'none'}}>
                                 <tbody>
-                                    <tr style={{width:'100%', height:'12%', border:'none'}}>
-                                        {this.state.current && this.state.current.eight > 0 ? <td style={{width:'50%', border:'none', padding: '2px'}}><button style={{width:'100%', fontSize:'21px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(8)} disabled={!this.state.toPlay}><b>Eight: {this.state.current.eight}</b></button></td> : null}
-                                        {this.state.current && this.state.current.four > 0 ? <td  style={{width:'50%', border:'none', padding: '2px'}}><button style={{width:'100%', fontSize:'21px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(4)} disabled={!this.state.toPlay}><b>Four: {this.state.current.four}</b></button></td> : null}
+                                    <tr style={{width:'100%', height:'30%', border:'none'}}>
+                                        {this.state.current && this.state.current.eight > 0 ? <td style={{width:'50%', border:'none', padding: '4px'}}><button style={{width:'100%', fontSize:'21px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(8)} disabled={!this.state.toPlay}><h4>Eight: {this.state.current.eight}</h4></button></td> : null}
+                                        {this.state.current && this.state.current.four > 0 ? <td  style={{width:'50%', border:'none', padding: '4px'}}><button style={{width:'100%', fontSize:'21px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(4)} disabled={!this.state.toPlay}><h4>Four: {this.state.current.four}</h4></button></td> : null}
                                     </tr>
-                                    <tr style={{width:'100%', height:'12%', border:'none'}}>
-                                        {this.state.current && this.state.current.three > 0 ? <td style={{width:'50%', border:'none', padding: '2px'}}><button style={{width:'100%', fontSize:'21px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(3)} disabled={!this.state.toPlay}><b>Three: {this.state.current.three}</b></button></td> : null}
-                                        {this.state.current && this.state.current.two > 0 ? <td  style={{width:'50%', border:'none', padding: '2px'}}><button style={{width:'100%', fontSize:'24px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(2)} disabled={!this.state.toPlay}><b>Two: {this.state.current.two}</b></button></td> : null}
+                                    <tr style={{width:'100%', height:'30%', border:'none'}}>
+                                        {this.state.current && this.state.current.three > 0 ? <td style={{width:'50%', border:'none', padding: '4px'}}><button style={{width:'100%', fontSize:'21px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(3)} disabled={!this.state.toPlay}><h4>Three: {this.state.current.three}</h4></button></td> : null}
+                                        {this.state.current && this.state.current.two > 0 ? <td  style={{width:'50%', border:'none', padding: '4px'}}><button style={{width:'100%', fontSize:'24px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(2)} disabled={!this.state.toPlay}><h4>Two: {this.state.current.two}</h4></button></td> : null}
                                     </tr>
-                                    <tr style={{width:'100%', height:'12%', border:'none'}}>
-                                        {this.state.current && this.state.current.one > 0 ? <td style={{width:'50%', border:'none', padding: '2px'}}><button style={{width:'100%', fontSize:'24px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(1)} disabled={!this.state.toPlay}><b>One: {this.state.current.one}</b></button></td> : null}
+                                    <tr style={{width:'100%', height:'30%', border:'none'}}>
+                                        {this.state.current && this.state.current.one > 0 ? <td style={{width:'50%', border:'none', padding: '4px'}}><button style={{width:'100%', fontSize:'24px', fontWeight: 'bold', borderRadius: '10px'}} onClick={() => this.selectToMove(1)} disabled={!this.state.toPlay}><h4>One: {this.state.current.one}</h4></button></td> : null}
                                     </tr>
                                 </tbody>
                             </table>
